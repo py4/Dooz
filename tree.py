@@ -22,7 +22,7 @@ class Node:
         return ''.join(self.state)
 
     def is_over(self):
-        if ((self.state[0] == self.state[2] == self.state[2] != '-') or \
+        if ((self.state[0] == self.state[1] == self.state[2] != '-') or \
 	    (self.state[3] == self.state[4] == self.state[5] != '-') or \
 	    (self.state[6] == self.state[7] == self.state[8] != '-') or \
 	    (self.state[0] == self.state[3] == self.state[6] != '-') or \
@@ -76,12 +76,22 @@ class Node:
 
 
     def evaluate(self, min_or_max, step, evaluated_nodes):
+
         if(step == MAX_STEP):
+            self.value = 0
+            evaluated_nodes[self.state_key()] = self.value
             return 0
+
         if(min_or_max == 0 and self.is_over()):
+            self.value = 3
+            evaluated_nodes[self.state_key()] = self.value
             return 3
+
         if(min_or_max == 1 and self.is_over()):
+            self.value = 0
+            evaluated_nodes[self.state_key()] = self.value
             return -1
+
         if(self.state_key() in list(evaluated_nodes.keys())):
             return evaluated_nodes[self.state_key()]
 
