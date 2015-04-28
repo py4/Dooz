@@ -8,18 +8,18 @@ class Node:
         self.children = []
         self.value = None
 
-    def dump(self, evaluated_nodes):
+    def dump(self, evaluated_nodes, min_or_max):
         print ""
-        print self.state_key() + " -> " + str(self.value) + " : " + str(evaluated_nodes[self.state_key()])
+        print self.state_key(min_or_max) + " -> " + str(self.value) + " : " + str(evaluated_nodes[self.state_key(min_or_max)])
         print "------- children ------"
         for n in self.children:
-            print n.state_key() + " -> " + str(n.value) + " : " + str(evaluated_nodes[n.state_key()])
+            print n.state_key(1 - min_or_max) + " -> " + str(n.value) + " : " + str(evaluated_nodes[n.state_key(1 - min_or_max)])
         print ""
         for n in self.children:
-            n.dump(evaluated_nodes)
+            n.dump(evaluated_nodes, 1-min_or_max)
 
-    def state_key(self):
-        return ''.join(self.state)
+    def state_key(self, min_or_max):
+        return ''.join(self.state)+str(min_or_max)
 
     def is_over(self):
         if ((self.state[0] == self.state[1] == self.state[2] != '-') or \
@@ -37,9 +37,9 @@ class Node:
         a_count = 0
         b_count = 0
         for el in self.state:
-            if(el == 'A'):
+            if(el == '1'):
                 a_count += 1
-            if(el == 'B'):
+            if(el == '2'):
                 b_count += 1
         if(min_or_max == 0 and b_count >= 3):
             return True
@@ -48,7 +48,7 @@ class Node:
         return False
 
     def current_cells(self, min_or_max):
-        return [i for i, el in enumerate(self.state) if el == ('A' if min_or_max == 1 else 'B')]
+        return [i for i, el in enumerate(self.state) if el == ('1' if min_or_max == 1 else '2')]
 
     def empty_cells(self):
         return [i for i, el in enumerate(self.state) if el == '-']
@@ -58,9 +58,9 @@ class Node:
             node = Node()
             node.parent = self
             node.state = list(self.state)
-            node.state[i] = 'A' if min_or_max == 1 else 'B'
-            if(node.state_key() in list(evaluated_nodes.keys())):
-                node.value = evaluated_nodes[node.state_key()]
+            node.state[i] = '1' if min_or_max == 1 else '2'
+            if(node.state_key(1-min_or_max) in list(evaluated_nodes.keys())):
+                node.value = evaluated_nodes[node.state_key(1-min_or_max)]
             self.children.append(node)
 
     def move_somewhere(self, min_or_max, evaluated_nodes):
@@ -71,10 +71,10 @@ class Node:
                 node = Node()
                 node.parent = self
                 node.state = list(self.state)
-                node.state[j] = 'A' if min_or_max == 1 else 'B'
+                node.state[j] = '1' if min_or_max == 1 else '2'
                 node.state[i] = '-'
-                if(node.state_key() in list(evaluated_nodes.keys())):
-                    node.value = evaluated_nodes[node.state_key()]
+                if(node.state_key(1-min_or_max) in list(evaluated_nodes.keys())):
+                    node.value = evaluated_nodes[node.state_key(1-min_or_max)]
                 self.children.append(node)
                 #print node.state
 
@@ -83,21 +83,22 @@ class Node:
 
         if(step == MAX_STEP):
             self.value = 0
-            evaluated_nodes[self.state_key()] = self.value
+            evaluated_nodes[self.state_key(min_or_max)] = self.value
+            #evaluated_nodes[self.state_key(1-min_or_max)] = self.value
             return 0
 
         if(min_or_max == 0 and self.is_over()):
             self.value = 3
-            evaluated_nodes[self.state_key()] = self.value
+            evaluated_nodes[self.state_key(min_or_max)] = self.value
             return 3
 
         if(min_or_max == 1 and self.is_over()):
             self.value = -1
-            evaluated_nodes[self.state_key()] = self.value
+            evaluated_nodes[self.state_key(min_or_max)] = self.value
             return -1
 
-        if(self.state_key() in list(evaluated_nodes.keys())):
-            return evaluated_nodes[self.state_key()]
+        if(self.state_key(min_or_max) in list(evaluated_nodes.keys())):
+            return evaluated_nodes[self.state_key(min_or_max)]
 
         if(not self.is_time_to_move(min_or_max)):
             self.put_somewhere(min_or_max, evaluated_nodes)
@@ -116,13 +117,14 @@ class Node:
             self.value = min(arr)
             index = arr.index(min(arr))
 
-        state_repository[self.state_key()] = self.children[index].state_key()
+        state_repository[self.state_key(min_or_max)] = self.children[index].state_key(1-min_or_max)
         #print "current state:  " + self.state_key()
         #print "value:  " + str(self.value)
-        evaluated_nodes[self.state_key()] = self.value
+        evaluated_nodes[self.state_key(min_or_max)] = self.value
         return self.value
 
-def build_tree():
+def build_tree(initial_state = ['-','-','-','-','-','-','-','-','-']
+):
     state_repository = {}
     evaluated_nodes = {}
     node = Node()
@@ -132,5 +134,5 @@ def build_tree():
     return node, evaluated_nodes, state_repository
 
 node, evaluated_nodes, state_repository = build_tree()
-print state_repository
-#node.dump(evaluated_nodes)
+#print state_repository
+#node.dump(evaluated_nodes, 1)

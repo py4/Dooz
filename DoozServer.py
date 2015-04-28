@@ -71,7 +71,7 @@ player_2_socket.connect((socket.gethostname(),PLAYER_2_PORT_NUMBER))
 
 # Start the Game
 winner = 0
-foul = 0 
+foul = 0
 while winner == 0 and foul == 0 and game_step < MAX_STEP:
 	turn = str(game_step % 2 + 1)
 
@@ -103,3 +103,6 @@ player_1_socket.send(GAME_OVER_MESSAGE)
 player_2_socket.send(GAME_OVER_MESSAGE)
 print 'Winner: ' + str(winner)
 print 'Who Fouled: ' + str(foul)
+
+player_1_socket.close()
+player_2_socket.close()

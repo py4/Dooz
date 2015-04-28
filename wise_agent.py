@@ -4,7 +4,7 @@
 
 import sys
 import socket
-
+from tree import *
 
 # Constants
 FREE_SIGN = '-'
@@ -17,32 +17,54 @@ GAME_OVER_MESSAGE = "GameOver"
 MAX_STEP = 100
 # Create Welcoming TCP Socket
 
-#welcoming_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-#welcoming_socket.bind((HOST_NAME,PORT_NUMBER))
-#welcoming_socket.listen(1)
-#(agent_socket,address) = welcoming_socket.accept()
-my_step = 0
-#game_state = agent_socket.recv(BUFFER_SIZE)
+welcoming_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+welcoming_socket.bind((HOST_NAME,PORT_NUMBER))
+welcoming_socket.listen(1)
+(agent_socket,address) = welcoming_socket.accept()
+game_state = agent_socket.recv(BUFFER_SIZE)
 
-def decide(game_state):
-  if my_step <= 2:
-    next_move = game_state.find(FREE_SIGN)
-  else:
-    my_cells = [i for i, letter in enumerate(game_state) if letter == MY_NUMBER]
-    for i in range(len(my_cells)):
-      for j in range(len(ADJACENCY_LIST[my_cells[i]])):
-        if game_state[ADJACENCY_LIST[my_cells[i]][j]] == FREE_SIGN:
-	  next_move = str(my_cells[i]) + str(ADJACENCY_LIST[my_cells[i]][j])
-	  break
-  return next_move
+def state_key(game_state):
+    return ''.join(game_state)
+
+def count_chars(game_state):
+    return len([el for el in game_state if el == MY_NUMBER])
+
+def get_diff(arr1, arr2):
+    diffs = []
+    for i,el in enumerate(arr1):
+        if(el == '-' and arr2[i] == '1' or (el == '1' and arr2[i] == '-')):
+            diffs.append(i)
+    return diffs
+
+def decide(game_state, state_repository):
+    old_state = state_key(game_state)
+    print "old_state:  "+str(old_state)
+    new_state = state_repository[old_state+str(MY_NUMBER)][0:9]
+    print "new_state:  "+str(new_state)
+    if(count_chars(game_state) < 3):
+        diff = get_diff(old_state, new_state)
+        if(len(diff) > 1):
+            print "FUCK!"
+        return str(diff[0])
+    else:
+        diff = get_diff(old_state, new_state)
+        print "diff:  "
+        print diff
+        if(len(diff) > 2):
+            print "FUCK2!"
+        if(old_state[diff[0]] == '-'):
+            return str(diff[1])+str(diff[0])
+        if(new_state[diff[0]] == '1'):
+            return str(diff[0])+str(diff[1])
 
 
-root_node = build_tree()
 #root_node.dump()
+node, evaluated_nodes, state_repository = build_tree()
 
-#while game_state != GAME_OVER_MESSAGE:
-#  agent_socket.send(str(decide(game_state)))
-#  my_step += 1
-#  game_state = agent_socket.recv(BUFFER_SIZE)
+while game_state != GAME_OVER_MESSAGE:
+    move = decide(game_state, state_repository)
+    agent_socket.send(str(move))
+    game_state = agent_socket.recv(BUFFER_SIZE)
 
 agent_socket.close()
+welcoming_socket.close()
