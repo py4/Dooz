@@ -53,15 +53,17 @@ class Node:
     def empty_cells(self):
         return [i for i, el in enumerate(self.state) if el == '-']
 
-    def put_somewhere(self, min_or_max):
+    def put_somewhere(self, min_or_max, evaluated_nodes):
         for i in self.empty_cells():
             node = Node()
             node.parent = self
             node.state = list(self.state)
             node.state[i] = 'A' if min_or_max == 1 else 'B'
+            if(node.state_key() in list(evaluated_nodes.keys())):
+                node.value = evaluated_nodes[node.state_key()]
             self.children.append(node)
 
-    def move_somewhere(self, min_or_max):
+    def move_somewhere(self, min_or_max, evaluated_nodes):
         for i in self.current_cells(min_or_max):
             for j in ADJ_LIST[i]:
                 if(self.state[j] != '-'):
@@ -71,11 +73,13 @@ class Node:
                 node.state = list(self.state)
                 node.state[j] = 'A' if min_or_max == 1 else 'B'
                 node.state[i] = '-'
+                if(node.state_key() in list(evaluated_nodes.keys())):
+                    node.value = evaluated_nodes[node.state_key()]
                 self.children.append(node)
                 #print node.state
 
 
-    def evaluate(self, min_or_max, step, evaluated_nodes):
+    def evaluate(self, min_or_max, step, evaluated_nodes, state_repository):
 
         if(step == MAX_STEP):
             self.value = 0
@@ -88,7 +92,7 @@ class Node:
             return 3
 
         if(min_or_max == 1 and self.is_over()):
-            self.value = 0
+            self.value = -1
             evaluated_nodes[self.state_key()] = self.value
             return -1
 
@@ -96,30 +100,37 @@ class Node:
             return evaluated_nodes[self.state_key()]
 
         if(not self.is_time_to_move(min_or_max)):
-            self.put_somewhere(min_or_max)
+            self.put_somewhere(min_or_max, evaluated_nodes)
         else:
-            self.move_somewhere(min_or_max)
+            self.move_somewhere(min_or_max, evaluated_nodes)
 
         arr = []
         for el in self.children:
-            arr.append(el.evaluate(1 - min_or_max, step+1, evaluated_nodes))
+            arr.append(el.evaluate(1 - min_or_max, step+1, evaluated_nodes, state_repository))
+
 
         if(min_or_max == 1):
             self.value = max(arr)
+            index = arr.index(max(arr))
         else:
             self.value = min(arr)
+            index = arr.index(min(arr))
+
+        state_repository[self.state_key()] = self.children[index].state_key()
         #print "current state:  " + self.state_key()
         #print "value:  " + str(self.value)
         evaluated_nodes[self.state_key()] = self.value
         return self.value
 
 def build_tree():
+    state_repository = {}
     evaluated_nodes = {}
     node = Node()
     node.state = ['-','-','-','-','-','-','-','-','-']
-    node.evaluate(1,0, evaluated_nodes)
+    node.evaluate(1,0, evaluated_nodes, state_repository)
     #print evaluted_nodes
-    return node, evaluated_nodes
+    return node, evaluated_nodes, state_repository
 
-node, evaluated_nodes = build_tree()
-node.dump(evaluated_nodes)
+node, evaluated_nodes, state_repository = build_tree()
+print state_repository
+#node.dump(evaluated_nodes)
