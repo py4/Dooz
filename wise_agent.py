@@ -11,6 +11,7 @@ FREE_SIGN = '-'
 ADJACENCY_LIST = [[1,3,4],[0,2,4],[1,4,5],[0,4,6],[0,1,2,3,5,6,7,8],[2,4,8],[3,4,7],[4,6,8],[4,5,7]]
 HOST_NAME = socket.gethostname()
 MY_NUMBER = sys.argv[1]
+HE = '2' if MY_NUMBER == '1' else '1'
 PORT_NUMBER = 2000 + int(MY_NUMBER)
 BUFFER_SIZE = 1024
 GAME_OVER_MESSAGE = "GameOver"
@@ -32,20 +33,24 @@ def count_chars(game_state):
 def get_diff(arr1, arr2):
     diffs = []
     for i,el in enumerate(arr1):
-        if(el == '-' and arr2[i] == '1' or (el == '1' and arr2[i] == '-')):
+        if(el == '-' and arr2[i] == MY_NUMBER or (el == MY_NUMBER and arr2[i] == '-')):
             diffs.append(i)
     return diffs
 
 def decide(game_state, state_repository):
     old_state = state_key(game_state)
     print "old_state:  "+str(old_state)
-    new_state = state_repository[old_state+str(MY_NUMBER)][0:9]
+    if(not old_state+"1" in state_repository.keys()):
+        print "UPDATING!"
+        node, evaluated_nodes, state_repository = build_tree(game_state, MY_NUMBER, HE)
+    print "None:  ", state_repository.__class__.__name__
+    new_state = state_repository[old_state+"1"]
     print "new_state:  "+str(new_state)
     if(count_chars(game_state) < 3):
         diff = get_diff(old_state, new_state)
         if(len(diff) > 1):
             print "FUCK!"
-        return str(diff[0])
+        return str(diff[0]), state_repository
     else:
         diff = get_diff(old_state, new_state)
         print "diff:  "
@@ -53,16 +58,17 @@ def decide(game_state, state_repository):
         if(len(diff) > 2):
             print "FUCK2!"
         if(old_state[diff[0]] == '-'):
-            return str(diff[1])+str(diff[0])
-        if(new_state[diff[0]] == '1'):
-            return str(diff[0])+str(diff[1])
+            return str(diff[1])+str(diff[0]), state_repository
+        if(old_state[diff[0]] == MY_NUMBER):
+            return str(diff[0])+str(diff[1]), state_repository
+        print "SHIT!"
 
 
 #root_node.dump()
-node, evaluated_nodes, state_repository = build_tree()
+node, evaluated_nodes, state_repository = build_tree(state_key(game_state), MY_NUMBER, HE)
 
 while game_state != GAME_OVER_MESSAGE:
-    move = decide(game_state, state_repository)
+    move, state_repository = decide(game_state, state_repository)
     agent_socket.send(str(move))
     game_state = agent_socket.recv(BUFFER_SIZE)
 
