@@ -90,10 +90,15 @@ class Node:
     def evaluate(self, min_or_max, step, evaluated_nodes, state_repository, me, he):
 
         if(step == MAX_STEP):
-            self.value = 0
-            evaluated_nodes[self.state_key(min_or_max)] = self.value
-            #evaluated_nodes[self.state_key(1-min_or_max)] = self.value
-            return 0
+            if(evaluated_nodes.has_key(self.state_key(min_or_max))):
+                if(evaluated_nodes[self.state_key(min_or_max)] != 0):
+                    self.value = evaluated_nodes[self.state_key(min_or_max)]
+                    return self.value
+            else:
+                print "I have not seen "+self.state_key(min_or_max)+" before!"
+                self.value = 0
+                evaluated_nodes[self.state_key(min_or_max)] = self.value
+                return 0
 
         if(min_or_max == 0 and self.is_over()):
             self.value = 3
@@ -134,7 +139,7 @@ class Node:
             index = arr.index(min(arr))
 
         state_repository[self.state_key(min_or_max)] = self.children[index].state_key(1-min_or_max)
-        #print self.state_key(min_or_max) + " -> " + self.children[index].state_key(1-min_or_max) + " : " + str(self.children[index].value)
+        print self.state_key(min_or_max) + " -> " + self.children[index].state_key(1-min_or_max) + " : " + str(self.children[index].value)
         #print "current state:  " + self.state_key()
         #print "value:  " + str(self.value)
         evaluated_nodes[self.state_key(min_or_max)] = self.value
@@ -154,8 +159,8 @@ def build_tree(initial_state, me, he
     #print evaluted_nodes
     return node, evaluated_nodes, state_repository
 
-#initial_state = ['1','-','-','-','-','-','-','-','-']
+initial_state = ['-','-','-','-','-','-','-','-','-']
 
-#node, evaluated_nodes, state_repository = build_tree(initial_state, '1', '2')
+node, evaluated_nodes, state_repository = build_tree(initial_state, '1', '2')
 #print state_repository
 #node.dump(evaluated_nodes, 1)

@@ -39,13 +39,9 @@ def get_diff(arr1, arr2):
 
 def decide(game_state, state_repository):
     old_state = state_key(game_state)
-    print "old_state:  "+str(old_state)
     if(not old_state+"1" in state_repository.keys()):
-        print "UPDATING!"
         node, evaluated_nodes, state_repository = build_tree(game_state, MY_NUMBER, HE)
-    print "None:  ", state_repository.__class__.__name__
     new_state = state_repository[old_state+"1"]
-    print "new_state:  "+str(new_state)
     if(count_chars(game_state) < 3):
         diff = get_diff(old_state, new_state)
         if(len(diff) > 1):
@@ -53,8 +49,6 @@ def decide(game_state, state_repository):
         return str(diff[0]), state_repository
     else:
         diff = get_diff(old_state, new_state)
-        print "diff:  "
-        print diff
         if(len(diff) > 2):
             print "FUCK2!"
         if(old_state[diff[0]] == '-'):
