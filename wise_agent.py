@@ -40,6 +40,7 @@ def get_diff(arr1, arr2):
 def decide(game_state, state_repository):
     old_state = state_key(game_state)
     if(not old_state+"1" in state_repository.keys()):
+
         node, evaluated_nodes, state_repository = build_tree(game_state, MY_NUMBER, HE)
     new_state = state_repository[old_state+"1"]
     if(count_chars(game_state) < 3):
@@ -59,9 +60,8 @@ def decide(game_state, state_repository):
 
 
 #root_node.dump()
-node, evaluated_nodes, state_repository = build_tree(state_key(game_state), MY_NUMBER, HE)
-
 while game_state != GAME_OVER_MESSAGE:
+    node, evaluated_nodes, state_repository = build_tree(state_key(game_state), MY_NUMBER, HE)
     move, state_repository = decide(game_state, state_repository)
     agent_socket.send(str(move))
     game_state = agent_socket.recv(BUFFER_SIZE)
